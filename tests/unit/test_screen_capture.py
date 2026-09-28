@@ -340,3 +340,53 @@ def test_capture_screen_button_cycle_0_to_5(main_window):
 
     assert panel.session.count == 4
     assert panel.capture_button.isEnabled()
+
+
+def test_compositor_settle_constant_and_configuration():
+    """Verify compositor settle duration is isolated in one documented configuration point."""
+    assert CaptureManager.DEFAULT_COMPOSITOR_SETTLE_MS == 35
+
+    # Can be configured per instance if needed
+    custom_mgr = CaptureManager(compositor_settle_ms=20)
+    assert custom_mgr._compositor_settle_ms == 20
+
+
+def test_event_driven_hide_and_restore_cycle(main_window):
+    """Verify event-driven sequencing hides window during capture and restores it on cancel."""
+    panel = main_window.screenshot_panel
+    manager = panel.capture_manager
+
+    main_window.show()
+    assert main_window.isVisible()
+
+    # Initiate capture with settle_ms=0 for testing
+    started = manager.start_capture(target_window=main_window, settle_ms=0)
+    assert started
+    assert not main_window.isVisible()
+    assert manager.is_active
+
+    # Cancellation restores the window
+    manager._on_cancelled()
+    assert not manager.is_active
+    assert main_window.isVisible()
+
+
+def test_rapid_repeated_clicks_do_not_create_overlapping_sessions(main_window):
+    """Verify rapid repeated clicks on Capture Screen button do not corrupt state or create duplicate overlays."""
+    panel = main_window.screenshot_panel
+    main_window.show()
+
+    # First click initiates capture
+    panel._on_capture_clicked()
+    assert panel.capture_manager.is_active
+    assert not panel.capture_button.isEnabled()
+
+    # Rapid second click while active must be safely ignored
+    panel._on_capture_clicked()
+    assert panel.capture_manager.is_active
+
+    # Cancel resets state cleanly
+    panel.capture_manager._on_cancelled()
+    assert not panel.capture_manager.is_active
+    assert panel.capture_button.isEnabled()
+

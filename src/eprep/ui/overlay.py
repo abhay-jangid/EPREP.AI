@@ -198,6 +198,29 @@ class CaptureOverlay(QWidget):
 class CaptureManager(QObject):
     """Orchestrates screen capture sessions across single or multiple connected monitors."""
 
+    DEFAULT_COMPOSITOR_SETTLE_MS: int = 35
+    """Minimal fallback compositor settle duration in milliseconds on Windows.
+
+    Why this exists:
+        When a top-level Qt widget is hidden on Windows, Qt dispatches hide events and
+        issues SW_HIDE to the underlying platform window. However, the Windows Desktop
+        Window Manager (DWM) composes desktop surfaces asynchronously on its own render
+        thread synchronized with display refresh intervals (e.g., ~16.6ms per frame at 60Hz).
+        Windows does not expose a deterministic user-mode signal notifying applications
+        when the DWM back-buffer has finished redrawing the vacated desktop surface.
+
+        To prevent the application window from appearing as a ghost or artifact inside
+        the desktop screen capture, a clean two-phase event-driven sequence is used:
+        1. The window hide is requested, and execution is queued via QTimer.singleShot(0)
+           so Qt processes all pending hide and platform window state events first.
+        2. A minimal compositor settle duration (approx. 2 composition frames at 60Hz: ~33.3ms)
+           is awaited via a non-blocking single-shot timer before capturing the screen.
+
+    Caveat:
+        This value represents a practical minimal verified timing on Windows rather than
+        a universally guaranteed hardware guarantee across all display drivers and refresh rates.
+    """
+
     capture_completed = Signal(bytes, str)  # (png_bytes, default_name)
     capture_cancelled = Signal()
     capture_failed = Signal(str)
@@ -207,13 +230,16 @@ class CaptureManager(QObject):
         parent: QObject | None = None,
         grab_screen_fn: Callable[[QScreen], QPixmap] | None = None,
         screens_provider: Callable[[], list[QScreen]] | None = None,
+        compositor_settle_ms: int = DEFAULT_COMPOSITOR_SETTLE_MS,
     ) -> None:
         super().__init__(parent)
         self._grab_screen_fn = grab_screen_fn or (lambda s: s.grabWindow(0))
         self._screens_provider = screens_provider or QApplication.screens
+        self._compositor_settle_ms = max(0, compositor_settle_ms)
         self._overlays: list[CaptureOverlay] = []
         self._target_window: QWidget | None = None
         self._is_active: bool = False
+        self._active_settle_ms: int = self._compositor_settle_ms
 
     @property
     def is_active(self) -> bool:
@@ -223,13 +249,22 @@ class CaptureManager(QObject):
     def start_capture(
         self,
         target_window: QWidget | None = None,
-        delay_ms: int = 150,
+        settle_ms: int | None = None,
+        delay_ms: int | None = None,
     ) -> bool:
-        """Initiate screen capture mode.
+        """Initiate screen capture mode using event-driven sequencing.
+
+        Sequence:
+            1. Re-entrancy guard check.
+            2. Request target window hide (if visible).
+            3. Queue execution to Qt event loop via QTimer.singleShot(0) to process hide events.
+            4. Wait minimal DWM compositor settle interval before grabbing desktop.
+            5. Acquire screen pixmaps and display snipping overlays.
 
         Args:
             target_window: The main application window to temporarily hide during capture.
-            delay_ms: Delay in milliseconds before grabbing desktop (allows window hide to paint).
+            settle_ms: Settle interval in milliseconds (defaults to DEFAULT_COMPOSITOR_SETTLE_MS).
+            delay_ms: Backwards-compatible alias for settle_ms.
 
         Returns:
             True if capture mode was successfully started, False if already active.
@@ -240,18 +275,43 @@ class CaptureManager(QObject):
         self._is_active = True
         self._target_window = target_window
 
-        if self._target_window is not None:
-            self._target_window.hide()
-
-        if delay_ms > 0:
-            QTimer.singleShot(delay_ms, self._acquire_and_show_overlays)
+        if delay_ms is not None:
+            active_settle = max(0, delay_ms)
+        elif settle_ms is not None:
+            active_settle = max(0, settle_ms)
         else:
-            self._acquire_and_show_overlays()
+            active_settle = self._compositor_settle_ms
+
+        self._active_settle_ms = active_settle
+
+        if self._target_window is not None and self._target_window.isVisible():
+            self._target_window.hide()
+            # Queue to Qt event loop: allows Qt to dispatch hide events and native window hide
+            QTimer.singleShot(0, self._on_hide_processed)
+        else:
+            # Target window already hidden or not provided; proceed via queued Qt event loop
+            if self._active_settle_ms > 0:
+                QTimer.singleShot(self._active_settle_ms, self._acquire_and_show_overlays)
+            else:
+                QTimer.singleShot(0, self._acquire_and_show_overlays)
 
         return True
 
+    def _on_hide_processed(self) -> None:
+        """Invoked after Qt has processed the window hide event."""
+        if not self._is_active:
+            return
+
+        if self._active_settle_ms > 0:
+            QTimer.singleShot(self._active_settle_ms, self._acquire_and_show_overlays)
+        else:
+            self._acquire_and_show_overlays()
+
     def _acquire_and_show_overlays(self) -> None:
         """Grab all connected displays and show snipping overlays on each."""
+        if not self._is_active:
+            return
+
         try:
             screens = self._screens_provider()
             if not screens:

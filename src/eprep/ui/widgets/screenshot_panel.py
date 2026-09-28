@@ -261,10 +261,10 @@ class ScreenshotPanel(QWidget):
         if self._capture_manager.is_active:
             return
 
-        self._refresh_ui()
         self.status_message_emitted.emit("Select an area to capture.")
         main_window = self.window()
-        self._capture_manager.start_capture(target_window=main_window, delay_ms=150)
+        if self._capture_manager.start_capture(target_window=main_window):
+            self._refresh_ui()
 
     def _on_capture_completed(self, png_bytes: bytes, _default_name: str) -> None:
         """Handle completed screen region capture."""
