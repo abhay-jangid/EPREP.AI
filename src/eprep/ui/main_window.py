@@ -70,6 +70,9 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self._status_bar)
         self._status_bar.showMessage("Ready")
 
+        # Connect signals
+        self._screenshot_panel.status_message_emitted.connect(self._status_bar.showMessage)
+
     def _create_header(self) -> QWidget:
         header = QFrame(self)
         header.setFrameShape(QFrame.Shape.NoFrame)
