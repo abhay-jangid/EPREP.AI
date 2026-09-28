@@ -24,3 +24,16 @@ class DuplicateImageError(ScreenshotError):
 class ScreenCaptureError(ScreenshotError):
     """Raised when screen capture or snipping fails."""
 
+
+class OCRError(EprepError):
+    """Base exception for OCR-related errors."""
+
+
+class OCRUnavailableError(OCRError):
+    """Raised when the OCR engine or its dependencies cannot be initialized."""
+
+
+class OCRProcessingError(OCRError):
+    """Raised when an error occurs during OCR text extraction."""
+
+

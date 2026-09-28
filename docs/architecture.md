@@ -54,7 +54,8 @@ The codebase follows a strict four-layer architecture:
 - **Adaptive Normalization**: Dimension inspection, aspect-ratio preservation, and contrast-aware resizing to preserve code font readability without premature downscaling.
 - **Dual-Path Understanding**:
   - *Path A (Direct Vision)*: Image directly provided to a compact multimodal model.
-  - *Path B (Hybrid OCR + Coder Fallback)*: Local OCR extracts text/code into structured context for a compact coding model.
+  - *Path B (Hybrid OCR + Coder Fallback)*: Pluggable `BaseOCRProvider` abstraction (`src/eprep/infrastructure/ocr/`). RapidOCR on ONNX Runtime CPU is evaluated as an initial baseline provider; final V1 production OCR engine decision is kept deferred pending comparative benchmarking.
+
 
 ---
 

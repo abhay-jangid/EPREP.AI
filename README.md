@@ -4,11 +4,11 @@ EPREP.AI is a local-first Windows desktop AI coding assistant built in Python.
 
 It assists users in solving programming problems from screenshots and inserting approved code into their preferred editor via a safe, hotkey-controlled workflow. The project operates with a ₹0 recurring-cost model with zero cloud dependencies.
 
-> **Status**: Under active phase-by-phase development. Currently at Phase 5 (Screen Capture & Region Snipping).
+> **Status**: Under active phase-by-phase development. Currently at Phase 6 (Local OCR & Screenshot Understanding).
 
 ---
 
-## Implemented Capabilities (Phase 5)
+## Implemented Capabilities (Phase 6)
 
 - Local image file upload (`PNG`, `JPEG`, `WebP`)
 - Drag-and-drop screenshot loading
@@ -17,6 +17,8 @@ It assists users in solving programming problems from screenshots and inserting 
 - Memory-first session management (zero permanent disk storage)
 - Invariant limit of maximum 5 screenshots per problem (dynamic capacity enforcement)
 - Real-time thumbnail preview cards with individual remove and clear all
+- Local screenshot text extraction foundation implemented (RapidOCR ONNX CPU provider abstraction)
+- Non-blocking background OCR worker architecture preserving GUI responsiveness
 
 ---
 
