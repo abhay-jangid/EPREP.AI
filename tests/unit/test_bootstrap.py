@@ -32,7 +32,8 @@ def test_approved_languages_set():
     assert actual == expected
 
 
-def test_main_entry_point():
+def test_main_entry_point(monkeypatch):
     """Verify main entry point runs cleanly without error."""
+    monkeypatch.setattr("eprep.main.run_app", lambda: 0)
     exit_code = main()
     assert exit_code == 0

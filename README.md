@@ -4,7 +4,7 @@ EPREP.AI is a local-first Windows desktop AI coding assistant built in Python.
 
 It assists users in solving programming problems from screenshots and inserting approved code into their preferred editor via a safe, hotkey-controlled workflow. The project operates with a ₹0 recurring-cost model with zero cloud dependencies.
 
-> **Status**: Under active phase-by-phase development. Currently at Phase 2 (Foundation & Bootstrap).
+> **Status**: Under active phase-by-phase development. Currently at Phase 3 (Desktop UI Foundation).
 
 ---
 
@@ -36,7 +36,15 @@ Install the project in editable mode with development dependencies:
 python -m pip install -e ".[dev]"
 ```
 
-### 3. Run Tests
+### 3. Launch Desktop UI
+
+Run the desktop application:
+```powershell
+eprep-ai
+```
+*(or `python -m eprep.main`)*
+
+### 4. Run Tests
 
 Execute the automated test suite:
 ```powershell

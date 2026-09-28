@@ -1,14 +1,12 @@
-"""EPREP.AI application entry point foundation."""
+"""EPREP.AI application entry point."""
 
 import sys
-from eprep import __app_name__, __version__
+from eprep.ui.app import run_app
 
 
 def main() -> int:
-    """Application CLI entry point."""
-    print(f"{__app_name__} v{__version__} - Foundation Initialized.")
-    print("Application under active phase-by-phase development.")
-    return 0
+    """Launch EPREP.AI desktop application."""
+    return run_app()
 
 
 if __name__ == "__main__":
