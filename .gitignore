@@ -1,20 +1,35 @@
+# Python virtual environments
 .venv/
 venv/
+
+# Byte-compiled / optimized files
 __pycache__/
 *.py[cod]
+
+# Testing & Linting caches
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Distribution, Packaging & Build artifacts
 build/
 dist/
-*.spec
+*.egg-info/
+.eggs/
+# Note: packaging .spec files are allowed for PyInstaller tracking in Git
+
+# Environment secrets
 .env
 .env.*
 !.env.example
+
+# Logs and temporary files
 logs/
 *.log
 temp/
 tmp/
+
+# OS and IDE files
 .DS_Store
 Thumbs.db
 .idea/
