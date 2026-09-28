@@ -19,3 +19,8 @@ class SessionCapacityError(ScreenshotError):
 
 class DuplicateImageError(ScreenshotError):
     """Raised when attempting to add an exact duplicate image to an active session."""
+
+
+class ScreenCaptureError(ScreenshotError):
+    """Raised when screen capture or snipping fails."""
+

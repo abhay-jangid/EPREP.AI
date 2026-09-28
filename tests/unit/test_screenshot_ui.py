@@ -43,7 +43,7 @@ def test_initial_button_states(main_window):
     panel = main_window.screenshot_panel
 
     assert panel.add_button.isEnabled()
-    assert not panel.capture_button.isEnabled()
+    assert panel.capture_button.isEnabled()
     assert not panel.clear_button.isEnabled()
     assert panel.count_label_text == "0 / 5"
     assert panel.is_empty
@@ -63,7 +63,7 @@ def test_add_screenshot_updates_ui(main_window, tmp_path: Path):
 
 
 def test_capacity_disables_add_button(main_window, tmp_path: Path):
-    """Verify reaching 5 screenshots disables the Add button."""
+    """Verify reaching 5 screenshots disables the Add and Capture buttons."""
     panel = main_window.screenshot_panel
     paths = [create_sample_image(tmp_path, f"img_{i}.png", (i * 20, 0, 0)) for i in range(5)]
 
@@ -71,6 +71,7 @@ def test_capacity_disables_add_button(main_window, tmp_path: Path):
 
     assert panel.count_label_text == "5 / 5"
     assert not panel.add_button.isEnabled()
+    assert not panel.capture_button.isEnabled()
     assert panel.clear_button.isEnabled()
 
     # Remove one item
@@ -79,6 +80,7 @@ def test_capacity_disables_add_button(main_window, tmp_path: Path):
 
     assert panel.count_label_text == "4 / 5"
     assert panel.add_button.isEnabled()
+    assert panel.capture_button.isEnabled()
 
 
 def test_clear_button_resets_ui(main_window, tmp_path: Path):
@@ -95,6 +97,7 @@ def test_clear_button_resets_ui(main_window, tmp_path: Path):
     assert panel.is_empty
     assert not panel.clear_button.isEnabled()
     assert panel.add_button.isEnabled()
+    assert panel.capture_button.isEnabled()
 
 
 def test_analyze_button_remains_disabled_with_screenshots(main_window, tmp_path: Path):

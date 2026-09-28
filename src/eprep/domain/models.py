@@ -1,6 +1,15 @@
 """Domain models for EPREP.AI."""
 
 from dataclasses import dataclass
+from enum import Enum
+
+
+class ScreenshotSource(str, Enum):
+    """Origin source of a screenshot item in a session."""
+
+    FILE = "file"
+    CLIPBOARD = "clipboard"
+    SCREEN_CAPTURE = "screen_capture"
 
 
 @dataclass(frozen=True)

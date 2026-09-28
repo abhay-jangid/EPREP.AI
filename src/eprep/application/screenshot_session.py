@@ -8,7 +8,7 @@ from eprep.domain.exceptions import (
     ImageValidationError,
     SessionCapacityError,
 )
-from eprep.domain.models import ScreenshotItem
+from eprep.domain.models import ScreenshotItem, ScreenshotSource
 from eprep.infrastructure.imaging.processor import ImageLoader
 
 
@@ -110,9 +110,11 @@ class ScreenshotSession:
         self,
         data: bytes,
         name: str = "Screenshot",
-        source_type: str = "paste",
+        source_type: str = ScreenshotSource.CLIPBOARD.value,
     ) -> ScreenshotItem:
         """Load, validate, and add an image from raw bytes."""
+        if source_type == "paste":
+            source_type = ScreenshotSource.CLIPBOARD.value
         item = ImageLoader.load_from_bytes(data, name=name, source_type=source_type)
         self.add_item(item)
         return item

@@ -18,8 +18,14 @@ from PySide6.QtWidgets import (
 )
 
 from eprep.application.screenshot_session import ScreenshotSession
-from eprep.domain.exceptions import EprepError
-from eprep.domain.models import ScreenshotItem
+from eprep.domain.exceptions import (
+    DuplicateImageError,
+    EprepError,
+    ImageValidationError,
+    SessionCapacityError,
+)
+from eprep.domain.models import ScreenshotItem, ScreenshotSource
+from eprep.ui.overlay import CaptureManager
 
 
 class ScreenshotCard(QFrame):
@@ -103,9 +109,17 @@ class ScreenshotPanel(QWidget):
     status_message_emitted = Signal(str)
     session_changed = Signal(int)
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        capture_manager: CaptureManager | None = None,
+    ) -> None:
         super().__init__(parent)
         self._session = ScreenshotSession()
+        self._capture_manager = capture_manager or CaptureManager(self)
+        self._capture_manager.capture_completed.connect(self._on_capture_completed)
+        self._capture_manager.capture_cancelled.connect(self._on_capture_cancelled)
+        self._capture_manager.capture_failed.connect(self._on_capture_failed)
         self.setAcceptDrops(True)
         self._init_ui()
         self._refresh_ui()
@@ -185,8 +199,8 @@ class ScreenshotPanel(QWidget):
         self._add_btn.clicked.connect(self._on_add_clicked)
 
         self._capture_btn = QPushButton("Capture Screen", self)
-        self._capture_btn.setEnabled(False)
-        self._capture_btn.setToolTip("Screen snipping will be available in Phase 5")
+        self._capture_btn.setToolTip("Capture and snip a region of your screen")
+        self._capture_btn.clicked.connect(self._on_capture_clicked)
 
         self._clear_btn = QPushButton("Clear", self)
         self._clear_btn.setEnabled(False)
@@ -204,9 +218,10 @@ class ScreenshotPanel(QWidget):
         self._count_label.setText(f"{count} / {self._session.MAX_SCREENSHOTS}")
 
         # Update button states
-        self._add_btn.setEnabled(not self._session.is_full)
-        self._capture_btn.setEnabled(False)  # Strictly Phase 5
-        self._clear_btn.setEnabled(count > 0)
+        is_capturing = self._capture_manager.is_active
+        self._add_btn.setEnabled(not self._session.is_full and not is_capturing)
+        self._capture_btn.setEnabled(not self._session.is_full and not is_capturing)
+        self._clear_btn.setEnabled(count > 0 and not is_capturing)
 
         # Clear existing card widgets
         while self._cards_layout.count() > 1:
@@ -236,6 +251,51 @@ class ScreenshotPanel(QWidget):
         )
         if file_paths:
             self.add_paths(file_paths)
+
+    def _on_capture_clicked(self) -> None:
+        """Initiate screen capture mode."""
+        if self._session.is_full:
+            self.status_message_emitted.emit("Maximum of 5 screenshots reached.")
+            return
+
+        if self._capture_manager.is_active:
+            return
+
+        self._refresh_ui()
+        self.status_message_emitted.emit("Select an area to capture.")
+        main_window = self.window()
+        self._capture_manager.start_capture(target_window=main_window, delay_ms=150)
+
+    def _on_capture_completed(self, png_bytes: bytes, _default_name: str) -> None:
+        """Handle completed screen region capture."""
+        display_name = f"Screen Capture {self._session.count + 1}"
+        try:
+            self._session.add_from_bytes(
+                png_bytes,
+                name=display_name,
+                source_type=ScreenshotSource.SCREEN_CAPTURE.value,
+            )
+            self._refresh_ui()
+            self.status_message_emitted.emit("Screen capture added.")
+        except DuplicateImageError:
+            self._refresh_ui()
+            self.status_message_emitted.emit("Screenshot already added.")
+        except SessionCapacityError:
+            self._refresh_ui()
+            self.status_message_emitted.emit("Maximum of 5 screenshots reached.")
+        except EprepError as exc:
+            self._refresh_ui()
+            self.status_message_emitted.emit(f"Capture error: {exc}")
+
+    def _on_capture_cancelled(self) -> None:
+        """Handle user cancellation of screen capture."""
+        self._refresh_ui()
+        self.status_message_emitted.emit("Screen capture cancelled.")
+
+    def _on_capture_failed(self, error_msg: str) -> None:
+        """Handle failure during screen capture."""
+        self._refresh_ui()
+        self.status_message_emitted.emit(f"Capture failed: {error_msg}")
 
     def add_paths(self, file_paths: list[str | Path]) -> None:
         """Add multiple file paths to the screenshot session."""
@@ -338,3 +398,9 @@ class ScreenshotPanel(QWidget):
     def clear_button(self) -> QPushButton:
         """Return the clear button."""
         return self._clear_btn
+
+    @property
+    def capture_manager(self) -> CaptureManager:
+        """Return the capture manager instance."""
+        return self._capture_manager
+
