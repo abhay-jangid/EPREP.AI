@@ -24,7 +24,7 @@ class SolutionPanel(QWidget):
 
         # Header
         header_label = QLabel("Solution Workspace", self)
-        header_label.setStyleSheet("font-weight: 600; font-size: 14px; color: #1e293b;")
+        header_label.setStyleSheet("font-weight: 600; font-size: 14px; color: #f1f5f9;")
         layout.addWidget(header_label)
 
         # Tabs

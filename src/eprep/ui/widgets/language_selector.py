@@ -21,7 +21,7 @@ class LanguageSelector(QWidget):
         layout.setSpacing(8)
 
         self._label = QLabel("Language:", self)
-        self._label.setStyleSheet("font-weight: 500; color: #333;")
+        self._label.setStyleSheet("font-weight: 500; color: #cbd5e1;")
 
         self._combo = QComboBox(self)
         self._combo.setMinimumWidth(130)

@@ -28,6 +28,7 @@ logs/
 *.log
 temp/
 tmp/
+eprep_ui_*.png
 
 # OS and IDE files
 .DS_Store

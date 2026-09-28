@@ -81,10 +81,10 @@ class MainWindow(QMainWindow):
         title_box.setSpacing(1)
 
         app_title = QLabel(__app_name__, header)
-        app_title.setStyleSheet("font-size: 18px; font-weight: 700; color: #0f172a;")
+        app_title.setStyleSheet("font-size: 18px; font-weight: 700; color: #f8fafc;")
 
         app_subtitle = QLabel("Local AI Coding Assistant", header)
-        app_subtitle.setStyleSheet("font-size: 11px; color: #64748b; font-weight: 500;")
+        app_subtitle.setStyleSheet("font-size: 11px; color: #94a3b8; font-weight: 500;")
 
         title_box.addWidget(app_title)
         title_box.addWidget(app_subtitle)
@@ -102,22 +102,26 @@ class MainWindow(QMainWindow):
         bar = QFrame(self)
         bar.setFrameShape(QFrame.Shape.StyledPanel)
         bar.setStyleSheet(
-            "QFrame { background-color: #f8fafc; border: 1px solid #e2e8f0; "
+            "QFrame { background-color: #1e293b; border: 1px solid #334155; "
             "border-radius: 6px; padding: 4px; }"
         )
 
         layout = QHBoxLayout(bar)
-        layout.setContentsMargins(10, 6, 10, 6)
+        layout.setContentsMargins(12, 6, 12, 6)
         layout.setSpacing(16)
 
         # Output Mode display (locked default: Safe Paste)
         self._output_mode_label = QLabel("Output Mode: Safe Paste", bar)
-        self._output_mode_label.setStyleSheet("color: #334155; font-size: 12px; font-weight: 500;")
+        self._output_mode_label.setStyleSheet(
+            "color: #cbd5e1; font-size: 12px; font-weight: 500; "
+            "background-color: #0f172a; border: 1px solid #334155; "
+            "border-radius: 4px; padding: 3px 8px;"
+        )
 
         # Typing Status display
         self._typing_status_label = QLabel("Typing: Not Ready to Type", bar)
         self._typing_status_label.setStyleSheet(
-            "color: #94a3b8; font-size: 12px; font-weight: 500; font-style: italic;"
+            "color: #64748b; font-size: 12px; font-weight: 500; font-style: italic;"
         )
 
         layout.addWidget(self._output_mode_label)

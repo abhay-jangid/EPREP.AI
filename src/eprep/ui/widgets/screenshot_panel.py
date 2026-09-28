@@ -29,12 +29,12 @@ class ScreenshotPanel(QWidget):
         # Header with title and count
         header_layout = QHBoxLayout()
         self._title_label = QLabel("Screenshots", self)
-        self._title_label.setStyleSheet("font-weight: 600; font-size: 14px; color: #1e293b;")
+        self._title_label.setStyleSheet("font-weight: 600; font-size: 14px; color: #f1f5f9;")
 
         self._count_label = QLabel(f"{self._count} / {self.MAX_SCREENSHOTS}", self)
         self._count_label.setStyleSheet(
-            "background-color: #f1f5f9; color: #475569; font-size: 12px; "
-            "font-weight: 600; padding: 2px 8px; border-radius: 10px;"
+            "background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; "
+            "font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 10px;"
         )
 
         header_layout.addWidget(self._title_label)
@@ -46,7 +46,7 @@ class ScreenshotPanel(QWidget):
         self._display_frame = QFrame(self)
         self._display_frame.setFrameShape(QFrame.Shape.StyledPanel)
         self._display_frame.setStyleSheet(
-            "QFrame { border: 2px dashed #cbd5e1; border-radius: 8px; background-color: #f8fafc; }"
+            "QFrame { border: 2px dashed #334155; border-radius: 8px; background-color: #0b0f19; }"
         )
 
         display_layout = QVBoxLayout(self._display_frame)
@@ -57,7 +57,7 @@ class ScreenshotPanel(QWidget):
             self._display_frame,
         )
         self._empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._empty_label.setStyleSheet("color: #64748b; font-size: 13px; line-height: 1.4;")
+        self._empty_label.setStyleSheet("color: #94a3b8; font-size: 13px; line-height: 1.4;")
         display_layout.addWidget(self._empty_label)
 
         main_layout.addWidget(self._display_frame, 1)
